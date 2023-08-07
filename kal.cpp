@@ -2,7 +2,6 @@
 #include <vector>
 #include <list>
 #include <assert.h>
-// #include <gdiplusgraphics.h>
 
 using namespace std;
 
@@ -418,35 +417,14 @@ int main(){
     // Initialise solved board
     vvi sol(8, vi(8, EMP));
 
-	// Initialise the target board
-	// TODO: Python Computer Vision stuff!
-	// trg = vvi({{RED, BLA, RED, BLA, RED, BLA, RED, BLA},
-	// 		   {BLA, RED, BLA, RED, BLA, RED, BLA, RED},
-	// 		   {RED, BLA, RED, BLA, RED, BLA, RED, BLA},
-	// 		   {BLA, RED, BLA, RED, BLA, RED, BLA, RED},
-	// 		   {RED, BLA, RED, BLA, RED, BLA, RED, BLA},
-	// 		   {BLA, RED, BLA, RED, BLA, RED, BLA, RED},
-	// 		   {RED, BLA, RED, BLA, RED, BLA, RED, BLA},
-	// 		   {BLA, RED, BLA, RED, BLA, RED, BLA, RED}});
+	trg = vvi(8, vi(8));
 
-	trg = vvi({{BLA, YEL, BLA, BLU, BLA, YEL, BLA, BLU},
-			   {YEL, BLA, BLU, BLA, YEL, BLA, BLU, BLA},
-			   {BLA, BLU, BLA, YEL, BLA, BLU, BLA, YEL},
-			   {BLU, BLA, YEL, BLA, BLU, BLA, YEL, BLA},
-			   {BLA, YEL, BLA, BLU, BLA, YEL, BLA, BLU},
-			   {YEL, BLA, BLU, BLA, YEL, BLA, BLU, BLA},
-			   {BLA, BLU, BLA, YEL, BLA, BLU, BLA, YEL},
-			   {BLU, BLA, YEL, BLA, BLU, BLA, YEL, BLA}});
-
-	// trg = vvi({{BLU, BLA, BLU, BLA, BLU, BLA, BLU, BLA},
-	// 		   {BLA, YEL, BLA, YEL, BLA, YEL, BLA, YEL},
-	// 		   {RED, BLA, RED, BLA, RED, BLA, RED, BLA},
-	// 		   {BLA, RED, BLA, RED, BLA, RED, BLA, RED},
-	// 		   {RED, BLA, RED, BLA, RED, BLA, RED, BLA},
-	// 		   {BLA, RED, BLA, RED, BLA, RED, BLA, RED},
-	// 		   {YEL, BLA, YEL, BLA, YEL, BLA, YEL, BLA},
-	// 		   {BLA, BLU, BLA, BLU, BLA, BLU, BLA, BLU}});
-
+	for(int i=0; i<8; i++){
+		for(int j=0; j<8; j++){
+			cin >> trg[i][j];
+		}
+	}
+	
 	bool soln = solve(sol, 0);
 	if(soln)
 		cout << "Solved!" << endl;
