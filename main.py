@@ -58,51 +58,122 @@ def get_coded_grid(color_grid):
             arg += str(color_code(color_grid[i][j]))
             arg += " "
     return arg
+def preprocess(board, pts2):
+	# Preprocessing the image
+	gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
+	blur = cv2.GaussianBlur(gray, (5, 5), 5)
+	thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+			 cv2.THRESH_BINARY_INV, 15, 4)
 
-color_grid = parse_file()
+	cv2.imshow("thresh", thresh)
+	cv2.waitKey(0)
+	
+	# Detecting the contours
+	try:
+		contours,_ = cv2.findContours(thresh, cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+		# print("found countour")
+		cnt = sorted(contours, key=lambda x: cv2.contourArea(x), reverse = True)[0]
+		
+		# print("sort contour")
+		a = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+		maximum = board.copy()
 
-# Compile the cpp file
-if not os.path.exists("kal.exe"):
-    subprocess.run("g++ kal.cpp -o kal.exe")
+		cv2.drawContours(maximum, cnt, -1, (255,255,255), 10)
+		# print("show")
+		cv2.imshow("img", maximum)
+		cv2.waitKey(0)
+		if(len(a)!=4):	
+			return pts2, thresh
+	except:
+		# print("aaa")
+		return pts2, thresh
+	
+	# Rearranging the points
+	a = a.reshape(-1, 2)
+	c = np.argsort(np.sum(a, axis = 1))
+	if(a[c[1]][0] < a[c[2]][0]):
+		c[2],c[1] = c[1],c[2]
+	c[2], c[3]=c[3], c[2]
 
-# Run the cpp file and get the output
+	return (np.float32(a[c]), thresh)
 
-exec_outp = subprocess.check_output("./kal.exe", input=get_coded_grid(color_grid).encode())
-outp = exec_outp.decode().split()
+def color_from_px(px):
+	if max(px) < 80:
+		return "BLA"	# Black
+	elif px[0] == max(px):
+		return "BLU"	# Blue
+	elif abs(float(px[1])-float(px[2])) < 80:
+		return "YEL"
+	else:
+		return "RED"
+	
 
-# If solution was found, continue
-if len(outp) == 65:
-    # Draw the background
-    img = np.zeros((BACKGROUND_SIZE, BACKGROUND_SIZE))
-    img = cv2.merge([img,img,img])
+size = 28
 
-    wd = (BACKGROUND_SIZE-BORDER_THICKNESS-2*BORDER_PADDING)//8
-    st = BORDER_THICKNESS+BORDER_PADDING
+pts2 = np.float32([[0,0],[size*8,0],[size*8,size*8],[0,size*8]])
+board = cv2.imread("inp2.png")
+pts1, thresh = preprocess(board, pts2)
+M = cv2.getPerspectiveTransform(pts1, pts2)
+board_cropped = cv2.warpPerspective(board, M, (size*8,size*8))
 
-    for i in range(8):
-        for j in range(8):
-            x = st+j*wd
-            y = st+i*wd
-            cv2.rectangle(img, (x,y), (x+wd, y+wd), get_color(color_grid[i][j]), -1)
+boardFound = False
+if not (pts1==pts2).all():
+	boardFound = True
 
-    numb_grid = np.array(outp[1:], dtype=int).reshape((8,8))
-    # print(numb_grid)
+if boardFound:
+	color_grid = []
+	st = size//2
+	for i in range(8):
+		tmp = []
+		for j in range(8):
+			tmp.append(str(color_from_px(board_cropped[st+i*size][st+j*size])))
+		color_grid.append(tmp)
+	
 
-    # Draw borders for the pieces and all
-    for i in range(8):
-        for j in range(8):
-            # check horizontally
-            if j+1<8 and numb_grid[i][j] != numb_grid[i][j+1]:
-                cv2.line(img, (st+wd*(j+1), st+wd*i), (st+wd*(j+1), st+wd*(i+1)), PIECE_BORDER_COLOR, PIECE_BORDER_THICKNESS)
-            # check vertically
-            if i+1<8 and numb_grid[i][j] != numb_grid[i+1][j]:
-                cv2.line(img, (st+wd*j, st+wd*(i+1)), (st+wd*(j+1), st+wd*(i+1)), PIECE_BORDER_COLOR, PIECE_BORDER_THICKNESS)
+	# Compile the cpp file
+	if not os.path.exists("kal.exe"):
+		subprocess.run("g++ kal.cpp -o kal.exe")
 
-    # Draw a border around the grid
-    cv2.rectangle(img, (BORDER_THICKNESS+BORDER_PADDING, BORDER_THICKNESS+BORDER_PADDING), (BACKGROUND_SIZE-BORDER_THICKNESS-BORDER_PADDING, BACKGROUND_SIZE-BORDER_THICKNESS-BORDER_PADDING), BORDER_COLOR, BORDER_THICKNESS)
+	# Run the cpp file and get the output
+
+	exec_outp = subprocess.check_output("./kal.exe", input=get_coded_grid(color_grid).encode())
+	outp = exec_outp.decode().split()
+
+	# If solution was found, continue
+	if len(outp) == 65:
+		# Draw the background
+		img = np.zeros((BACKGROUND_SIZE, BACKGROUND_SIZE))
+		img = cv2.merge([img,img,img])
+
+		wd = (BACKGROUND_SIZE-BORDER_THICKNESS-2*BORDER_PADDING)//8
+		st = BORDER_THICKNESS+BORDER_PADDING
+
+		for i in range(8):
+			for j in range(8):
+				x = st+j*wd
+				y = st+i*wd
+				cv2.rectangle(img, (x,y), (x+wd, y+wd), get_color(color_grid[i][j]), -1)
+
+		numb_grid = np.array(outp[1:], dtype=int).reshape((8,8))
+		# print(numb_grid)
+
+		# Draw borders for the pieces and all
+		for i in range(8):
+			for j in range(8):
+				# check horizontally
+				if j+1<8 and numb_grid[i][j] != numb_grid[i][j+1]:
+					cv2.line(img, (st+wd*(j+1), st+wd*i), (st+wd*(j+1), st+wd*(i+1)), PIECE_BORDER_COLOR, PIECE_BORDER_THICKNESS)
+				# check vertically
+				if i+1<8 and numb_grid[i][j] != numb_grid[i+1][j]:
+					cv2.line(img, (st+wd*j, st+wd*(i+1)), (st+wd*(j+1), st+wd*(i+1)), PIECE_BORDER_COLOR, PIECE_BORDER_THICKNESS)
+
+		# Draw a border around the grid
+		cv2.rectangle(img, (BORDER_THICKNESS+BORDER_PADDING, BORDER_THICKNESS+BORDER_PADDING), (BACKGROUND_SIZE-BORDER_THICKNESS-BORDER_PADDING, BACKGROUND_SIZE-BORDER_THICKNESS-BORDER_PADDING), BORDER_COLOR, BORDER_THICKNESS)
 
 
-    cv2.imshow('image',img)
-    cv2.waitKey(0)
+		cv2.imshow('image',img)
+		cv2.waitKey(0)
+	else:
+		print("Solution not found!")
 else:
-    print("Solution not found!")
+	print("Board not found!")
