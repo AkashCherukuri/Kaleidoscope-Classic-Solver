@@ -31,15 +31,15 @@ def get_color(s):
     elif s == "RED":
         return RED
 
-def parse_file():
-    # Read inp.txt and get the codes
-    str_grid = []
-    with open("inp.txt") as file:
-        lines = file.readlines()
-        for line in lines:
-            str_grid.append(line.strip().split(","))
+# def parse_file():
+#     # Read inp.txt and get the codes
+#     str_grid = []
+#     with open("inp.txt") as file:
+#         lines = file.readlines()
+#         for line in lines:
+#             str_grid.append(line.strip().split(","))
     
-    return np.array(str_grid)
+#     return np.array(str_grid)
 
 def color_code(s):
     if s == "RED":
@@ -61,7 +61,7 @@ def get_coded_grid(color_grid):
 def preprocess(board, pts2):
 	# Preprocessing the image
 	gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
-	blur = cv2.GaussianBlur(gray, (5, 5), 5)
+	blur = cv2.GaussianBlur(gray, (5, 5), 5, sigmaY=5)
 	thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
 			 cv2.THRESH_BINARY_INV, 15, 4)
 
@@ -111,7 +111,7 @@ def color_from_px(px):
 size = 28
 
 pts2 = np.float32([[0,0],[size*8,0],[size*8,size*8],[0,size*8]])
-board = cv2.imread("inp2.png")
+board = cv2.imread("inp3.png")
 pts1, thresh = preprocess(board, pts2)
 M = cv2.getPerspectiveTransform(pts1, pts2)
 board_cropped = cv2.warpPerspective(board, M, (size*8,size*8))
