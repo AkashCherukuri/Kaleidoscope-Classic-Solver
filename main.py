@@ -65,8 +65,8 @@ def preprocess(board, pts2):
 	thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
 			 cv2.THRESH_BINARY_INV, 15, 4)
 
-	cv2.imshow("thresh", thresh)
-	cv2.waitKey(0)
+	# cv2.imshow("thresh", thresh)
+	# cv2.waitKey(0)
 	
 	# Detecting the contours
 	try:
@@ -80,8 +80,8 @@ def preprocess(board, pts2):
 
 		cv2.drawContours(maximum, cnt, -1, (255,255,255), 10)
 		# print("show")
-		cv2.imshow("img", maximum)
-		cv2.waitKey(0)
+		# cv2.imshow("img", maximum)
+		# cv2.waitKey(0)
 		if(len(a)!=4):	
 			return pts2, thresh
 	except:
